@@ -11,6 +11,7 @@ data = client_socket.recv(2048)
 credentials = data.decode("utf-8")
 username, salt, pwd = credentials.split(',')
 print("credentials", credentials)
+found = False
 while True:
     try:
         data = client_socket.recv(1024)
@@ -29,9 +30,12 @@ while True:
                 print(f"Encontrada, es esta: {password} en pepper: {pepper}")
                 client_socket.sendall(b"True")
                 client_socket.sendall(bytes(f"{pepper}", "utf-8"))
+                found = True
                 break
-
-        client_socket.sendall(b"False")
+        if found is False:
+            client_socket.sendall(b"False")
+        else:
+            break
     except Exception as exe:
         client_socket.close()
         break

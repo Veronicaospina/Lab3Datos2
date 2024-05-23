@@ -14,7 +14,7 @@ LIST_OF_CLIENTS: List["socket.socket"] = []
 SERVER_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 username, salt, pwd = ('veronicaospina', '9511a3d63335ccd41b5b2cbc6655e882',
-                       '9d35effb0e16518b55fd5171d3d8979f7a2b0271523684162086a27f8f00c270917c90a312bd2558885b4ed91c8bb03a6e088ef51c1d759a24594ab54302eaa2')
+                       '34261cfce8a950d926fadf1fe004c07829b95f7ce3edfb7bf231cfbd3207c30a5b2e558bbf41e9f9038d9e27c49131acfa79a8f5fe52bec232a34131561b181e')
 
 # Abre el archivo de texto en modo de lectura
 with open('rockyou.txt', 'r', encoding='iso-8859-1') as file:
@@ -22,7 +22,6 @@ with open('rockyou.txt', 'r', encoding='iso-8859-1') as file:
     lines = file.readlines()
 possible = [line.strip() for line in lines]
 
-found = False
 amount_of_passwords = len(possible)
 batch_amount = math.ceil(amount_of_passwords / 500)
 processed_batches = 0
@@ -47,7 +46,6 @@ def get_pending_batch():
 
 
 def client_thread(client_socket: "socket.socket") -> NoReturn:
-    global found
     while True:
         batch = get_pending_batch()
         if batch is None:
@@ -66,13 +64,12 @@ def client_thread(client_socket: "socket.socket") -> NoReturn:
                 data = client_socket.recv(1024)
                 response = data == b"True"
                 if response:
-                    pepper = client_socket.recv(1024).decode("utf-8")
+                    pepp = client_socket.recv(1024)
+                    pepper = pepp.decode("utf-8")
                     print(f"Contraseña encontrada: {password}")
                     print(f"Pepper fue: {pepper}")
                     cerrar_clientes()
                     cerrar_clientes()
-                    #found = True
-                    #break
                 index += 1
         except Exception as exe:
             if not response:
@@ -102,8 +99,7 @@ SERVER_SOCKET.listen(MAX_CLIENTS)
 print(f'El servidor ha iniciado en {IP_ADDRESS}:{PORT} y esta escuchando...')
 
 while True:
-    if found is False:
-        client_socket, client_address = SERVER_SOCKET.accept()
-        LIST_OF_CLIENTS.append(client_socket)
-        print(client_address[0], 'connected')
-        start_new_thread(client_thread, (client_socket,))
+    client_socket, client_address = SERVER_SOCKET.accept()
+    LIST_OF_CLIENTS.append(client_socket)
+    print(client_address[0], 'connected')
+    start_new_thread(client_thread, (client_socket,))
